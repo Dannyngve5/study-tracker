@@ -18,9 +18,9 @@ class SubjectRepository(ABC):
         pass
 
     @abstractmethod
-    def update(self, subject: Subject) -> Subject:
+    def update(self, subject: Subject) -> Subject | None:
         pass
 
     @abstractmethod
-    def delete(self, subject_id: int) -> None:
+    def delete(self, subject_id: int) -> bool:
         pass

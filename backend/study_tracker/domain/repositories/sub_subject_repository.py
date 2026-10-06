@@ -18,9 +18,9 @@ class SubSubjectRepository(ABC):
         pass
 
     @abstractmethod
-    def update(self, sub_subject: SubSubject) -> SubSubject:
+    def update(self, sub_subject: SubSubject) -> SubSubject | None:
         pass
 
     @abstractmethod
-    def delete(self, sub_subject_id: int) -> None:
+    def delete(self, sub_subject_id: int) -> bool:
         pass

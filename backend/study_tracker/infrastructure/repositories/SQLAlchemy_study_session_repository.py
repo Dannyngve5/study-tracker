@@ -70,11 +70,11 @@ class SQLAlchemyStudySessionRepository(StudySessionRepository):
             for model in models
         ]
 
-    def update(self, study_session: StudySession) -> StudySession:
+    def update(self, study_session: StudySession) -> StudySession | None:
         model = self.session.get(StudySessionModel, study_session.id)
 
         if model is None:
-            raise ValueError("StudySession not found")
+            return None
 
         model.subject_id = study_session.subject_id
         model.subsubject_id = study_session.subsubject_id
@@ -94,11 +94,13 @@ class SQLAlchemyStudySessionRepository(StudySessionRepository):
             created_at=model.created_at,
         )
 
-    def delete(self, study_session_id: int) -> None:
+    def delete(self, study_session_id: int) -> bool:
         model = self.session.get(StudySessionModel, study_session_id)
 
         if model is None:
-            return
+            return False
 
         self.session.delete(model)
         self.session.flush()
+
+        return True

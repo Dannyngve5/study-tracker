@@ -1,6 +1,5 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-
 from study_tracker.domain.entities.sub_subject import SubSubject
 from study_tracker.domain.repositories.sub_subject_repository import (
     SubSubjectRepository,
@@ -62,11 +61,11 @@ class SQLAlchemySubSubjectRepository(SubSubjectRepository):
             for model in models
         ]
 
-    def update(self, sub_subject: SubSubject) -> SubSubject:
+    def update(self, sub_subject: SubSubject) -> SubSubject | None:
         model = self.session.get(SubSubjectModel, sub_subject.id)
 
         if model is None:
-            raise ValueError("SubSubject not found")
+            return None
 
         model.subject_id = sub_subject.subject_id
         model.name = sub_subject.name
@@ -82,11 +81,12 @@ class SQLAlchemySubSubjectRepository(SubSubjectRepository):
             created_at=model.created_at,
         )
 
-    def delete(self, sub_subject_id: int) -> None:
+    def delete(self, sub_subject_id: int) -> bool:
         model = self.session.get(SubSubjectModel, sub_subject_id)
 
         if model is None:
-            return
+            return False
 
         self.session.delete(model)
         self.session.flush()
+        return True

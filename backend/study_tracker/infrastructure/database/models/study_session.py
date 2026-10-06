@@ -2,7 +2,6 @@ from datetime import datetime
 
 from sqlalchemy import DateTime, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column
-
 from study_tracker.infrastructure.database.base import Base
 
 
@@ -12,7 +11,10 @@ class StudySession(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
 
     subject_id: Mapped[int] = mapped_column(
-        ForeignKey("subjects.id"),
+        ForeignKey(
+            "subjects.id",
+            name="fk_study_sessions_subject_id_subjects",
+        ),
         nullable=False,
     )
 
