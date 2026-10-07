@@ -218,7 +218,7 @@ class StudySession:
             sub_subject_id=sub_subject_id,
             started_at=started_at,
             status=StudySessionStatus.RUNNING,
-            duration_seconds=0,
+            duration_seconds=None,
         )
 
     @staticmethod

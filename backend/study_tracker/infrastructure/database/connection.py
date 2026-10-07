@@ -10,3 +10,5 @@ SessionLocal = sessionmaker(
     autoflush=False,
     expire_on_commit=False,
 )
+
+# Settings: How the app connects to postgress

@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     postgres_password: str
     postgres_port: int
 
+    postgres_test_db: str
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -24,6 +26,14 @@ class Settings(BaseSettings):
             f"postgresql+psycopg://"
             f"{self.postgres_user}:{self.postgres_password}"
             f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
+        )
+
+    @property
+    def test_database_url(self) -> str:
+        return (
+            f"postgresql+psycopg://"
+            f"{self.postgres_user}:{self.postgres_password}"
+            f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_test_db}"
         )
 
 

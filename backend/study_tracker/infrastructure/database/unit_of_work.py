@@ -14,11 +14,18 @@ from study_tracker.infrastructure.repositories.SQLAlchemy_subject_repository imp
     SQLAlchemySubjectRepository,
 )
 
+from sqlalchemy.orm import Session
+from collections.abc import Callable
+
 
 class UnitOfWork(UnitOfWorkContract):
 
+    def __init__(self, session_factory: Callable[[], Session] = SessionLocal):
+        self._session_factory = session_factory
+        self.session: Session | None = None
+
     def __enter__(self) -> Self:
-        self.session = SessionLocal()
+        self.session = self._session_factory()
 
         self.subjects = SQLAlchemySubjectRepository(self.session)
         self.sub_subjects = SQLAlchemySubSubjectRepository(self.session)
