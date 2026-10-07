@@ -1,10 +1,11 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+
 from study_tracker.domain.entities.sub_subject import SubSubject
 from study_tracker.domain.repositories.sub_subject_repository import (
     SubSubjectRepository,
 )
-from study_tracker.infrastructure.database.models.subsubject import (
+from study_tracker.infrastructure.database.models.sub_subject import (
     SubSubject as SubSubjectModel,
 )
 
@@ -24,13 +25,7 @@ class SQLAlchemySubSubjectRepository(SubSubjectRepository):
         self.session.add(model)
         self.session.flush()
 
-        return SubSubject(
-            id=model.id,
-            subject_id=model.subject_id,
-            name=model.name,
-            description=model.description,
-            created_at=model.created_at,
-        )
+        return self._to_domain(model)
 
     def get_by_id(self, sub_subject_id: int) -> SubSubject | None:
         model = self.session.get(SubSubjectModel, sub_subject_id)
@@ -38,28 +33,13 @@ class SQLAlchemySubSubjectRepository(SubSubjectRepository):
         if model is None:
             return None
 
-        return SubSubject(
-            id=model.id,
-            subject_id=model.subject_id,
-            name=model.name,
-            description=model.description,
-            created_at=model.created_at,
-        )
+        return self._to_domain(model)
 
     def get_all(self) -> list[SubSubject]:
         statement = select(SubSubjectModel)
         models = self.session.scalars(statement).all()
 
-        return [
-            SubSubject(
-                id=model.id,
-                subject_id=model.subject_id,
-                name=model.name,
-                description=model.description,
-                created_at=model.created_at,
-            )
-            for model in models
-        ]
+        return [self._to_domain(model) for model in models]
 
     def update(self, sub_subject: SubSubject) -> SubSubject | None:
         model = self.session.get(SubSubjectModel, sub_subject.id)
@@ -73,13 +53,7 @@ class SQLAlchemySubSubjectRepository(SubSubjectRepository):
 
         self.session.flush()
 
-        return SubSubject(
-            id=model.id,
-            subject_id=model.subject_id,
-            name=model.name,
-            description=model.description,
-            created_at=model.created_at,
-        )
+        return self._to_domain(model)
 
     def delete(self, sub_subject_id: int) -> bool:
         model = self.session.get(SubSubjectModel, sub_subject_id)
@@ -89,4 +63,15 @@ class SQLAlchemySubSubjectRepository(SubSubjectRepository):
 
         self.session.delete(model)
         self.session.flush()
+
         return True
+
+    @staticmethod
+    def _to_domain(model: SubSubjectModel) -> SubSubject:
+        return SubSubject(
+            id=model.id,
+            subject_id=model.subject_id,
+            name=model.name,
+            description=model.description,
+            created_at=model.created_at,
+        )

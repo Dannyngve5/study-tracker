@@ -6,14 +6,14 @@ from study_tracker.infrastructure.database.base import Base
 
 
 class SubSubject(Base):
-    __tablename__ = "subsubjects"
+    __tablename__ = "sub_subjects"
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
     subject_id: Mapped[int] = mapped_column(
         ForeignKey(
             "subjects.id",
-            name="fk_subsubjects_subject_id_subjects",
+            name="fk_sub_subjects_subject_id_subjects",
         ),
         nullable=False,
     )

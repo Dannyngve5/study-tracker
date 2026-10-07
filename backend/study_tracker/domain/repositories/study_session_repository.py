@@ -18,9 +18,13 @@ class StudySessionRepository(ABC):
         pass
 
     @abstractmethod
-    def update(self, study_session: StudySession) -> StudySession:
+    def get_active(self) -> StudySession | None:
         pass
 
     @abstractmethod
-    def delete(self, study_session_id: int) -> None:
+    def update(self, study_session: StudySession) -> StudySession | None:
+        pass
+
+    @abstractmethod
+    def delete(self, study_session_id: int) -> bool:
         pass

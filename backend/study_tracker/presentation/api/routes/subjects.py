@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Path, status
+
 from study_tracker.application.dto.subject import (
     CreateSubjectDTO,
     UpdateSubjectDTO,
@@ -27,14 +28,20 @@ def create_subject(
     return service.create(dto)
 
 
-@router.get("/", response_model=list[SubjectResponse])
+@router.get(
+    "/",
+    response_model=list[SubjectResponse],
+)
 def get_subjects(
     service: Annotated[SubjectService, Depends(get_subject_service)],
 ) -> list[SubjectResponse]:
     return service.get_all()
 
 
-@router.get("/{subject_id}", response_model=SubjectResponse)
+@router.get(
+    "/{subject_id}",
+    response_model=SubjectResponse,
+)
 def get_subject(
     subject_id: Annotated[int, Path(gt=0)],
     service: Annotated[SubjectService, Depends(get_subject_service)],
@@ -54,7 +61,10 @@ def update_subject(
     return service.update(subject_id, dto)
 
 
-@router.delete("/{subject_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{subject_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
 def delete_subject(
     subject_id: Annotated[int, Path(gt=0)],
     service: Annotated[SubjectService, Depends(get_subject_service)],

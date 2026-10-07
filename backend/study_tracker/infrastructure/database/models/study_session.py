@@ -1,7 +1,9 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, func
+from sqlalchemy import DateTime, Enum as SqlEnum, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column
+from study_tracker.domain.entities.study_session import StudySessionStatus
+
 from study_tracker.infrastructure.database.base import Base
 
 
@@ -18,8 +20,8 @@ class StudySession(Base):
         nullable=False,
     )
 
-    subsubject_id: Mapped[int | None] = mapped_column(
-        ForeignKey("subsubjects.id"),
+    sub_subject_id: Mapped[int | None] = mapped_column(
+        ForeignKey("sub_subjects.id"),
         nullable=True,
     )
 
@@ -35,6 +37,24 @@ class StudySession(Base):
 
     duration_seconds: Mapped[int | None] = mapped_column(
         nullable=True,
+    )
+
+    status: Mapped[StudySessionStatus] = mapped_column(
+        SqlEnum(
+            StudySessionStatus,
+            values_callable=lambda enum: [member.value for member in enum],
+        ),
+        nullable=False,
+    )
+
+    paused_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+    paused_duration_seconds: Mapped[int] = mapped_column(
+        nullable=False,
+        default=0,
     )
 
     created_at: Mapped[datetime] = mapped_column(
