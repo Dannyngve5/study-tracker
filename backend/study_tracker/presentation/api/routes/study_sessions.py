@@ -13,6 +13,12 @@ from study_tracker.application.services.study_session_service import (
 from study_tracker.presentation.api.dependencies import (
     get_study_session_service,
 )
+from study_tracker.presentation.api.responses import (
+    ERROR_400,
+    ERROR_404,
+    ERROR_409,
+    ERROR_422,
+)
 from study_tracker.presentation.api.schemas.study_session import (
     StudySessionResponse,
 )
@@ -27,6 +33,10 @@ router = APIRouter(
     "/",
     response_model=StudySessionResponse,
     status_code=status.HTTP_201_CREATED,
+    responses={
+        404: ERROR_404,
+        422: ERROR_422,
+    },
 )
 def create_study_session(
     dto: CreateStudySessionDTO,
@@ -68,6 +78,11 @@ def get_active_study_session(
     "/start",
     response_model=StudySessionResponse,
     status_code=status.HTTP_201_CREATED,
+    responses={
+        404: ERROR_404,
+        409: ERROR_409,
+        422: ERROR_422,
+    },
 )
 def start_study_session(
     dto: StartSessionDTO,
@@ -82,6 +97,10 @@ def start_study_session(
 @router.get(
     "/{study_session_id}",
     response_model=StudySessionResponse,
+    responses={
+        404: ERROR_404,
+        422: ERROR_422,
+    },
 )
 def get_study_session(
     study_session_id: Annotated[int, Path(gt=0)],
@@ -96,6 +115,11 @@ def get_study_session(
 @router.post(
     "/{study_session_id}/pause",
     response_model=StudySessionResponse,
+    responses={
+        400: ERROR_400,
+        404: ERROR_404,
+        422: ERROR_422,
+    },
 )
 def pause_study_session(
     study_session_id: Annotated[int, Path(gt=0)],
@@ -110,6 +134,11 @@ def pause_study_session(
 @router.post(
     "/{study_session_id}/resume",
     response_model=StudySessionResponse,
+    responses={
+        400: ERROR_400,
+        404: ERROR_404,
+        422: ERROR_422,
+    },
 )
 def resume_study_session(
     study_session_id: Annotated[int, Path(gt=0)],
@@ -124,6 +153,11 @@ def resume_study_session(
 @router.post(
     "/{study_session_id}/stop",
     response_model=StudySessionResponse,
+    responses={
+        400: ERROR_400,
+        404: ERROR_404,
+        422: ERROR_422,
+    },
 )
 def stop_study_session(
     study_session_id: Annotated[int, Path(gt=0)],
@@ -138,6 +172,11 @@ def stop_study_session(
 @router.put(
     "/{study_session_id}",
     response_model=StudySessionResponse,
+    responses={
+        400: ERROR_400,
+        404: ERROR_404,
+        422: ERROR_422,
+    },
 )
 def update_study_session(
     study_session_id: Annotated[int, Path(gt=0)],
@@ -153,6 +192,10 @@ def update_study_session(
 @router.delete(
     "/{study_session_id}",
     status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        404: ERROR_404,
+        422: ERROR_422,
+    },
 )
 def delete_study_session(
     study_session_id: Annotated[int, Path(gt=0)],

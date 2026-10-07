@@ -1,10 +1,12 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+import logging
 
 from study_tracker.application.exceptions import (
-    SubjectNotFoundError,
     StudySessionAlreadyActiveError,
     StudySessionNotFoundError,
+    SubjectNotFoundError,
     SubSubjectDoesNotBelongToSubjectError,
     SubSubjectNotFoundError,
 )
@@ -14,84 +16,134 @@ from study_tracker.domain.exceptions import (
     SubjectHasDependentsError,
 )
 
+logger = logging.getLogger(__name__)
+
+
+async def unexpected_exception_handler(
+    _request: Request,
+    exc: Exception,
+) -> JSONResponse:
+    logger.exception(
+        "Unhandled exception while processing request",
+        exc_info=exc,
+    )
+
+    return _error_response(
+        500,
+        "INTERNAL_SERVER_ERROR",
+        "An internal server error occurred",
+    )
+
+
+def request_validation_exception_handler(
+    _request: Request, _exc: RequestValidationError
+) -> JSONResponse:
+    return _error_response(
+        422,
+        "VALIDATION_ERROR",
+        "Request validation failed",
+    )
+
+
+def _error_response(
+    status_code: int,
+    code: str,
+    message: str,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "code": code,
+            "message": message,
+        },
+    )
+
 
 def subject_not_found_exception_handler(
     _request: Request,
     exc: SubjectNotFoundError,
-):
-    return JSONResponse(
-        status_code=404,
-        content={"detail": str(exc)},
+) -> JSONResponse:
+    return _error_response(
+        404,
+        "SUBJECT_NOT_FOUND",
+        str(exc),
     )
 
 
 def subject_already_exists_exception_handler(
     _request: Request,
     exc: SubjectAlreadyExistsError,
-):
-    return JSONResponse(
-        status_code=409,
-        content={"detail": str(exc)},
+) -> JSONResponse:
+    return _error_response(
+        409,
+        "SUBJECT_ALREADY_EXISTS",
+        str(exc),
     )
 
 
 def subject_has_dependents_exception_handler(
     _request: Request,
     exc: SubjectHasDependentsError,
-):
-    return JSONResponse(
-        status_code=409,
-        content={"detail": str(exc)},
+) -> JSONResponse:
+    return _error_response(
+        409,
+        "SUBJECT_HAS_DEPENDENTS",
+        str(exc),
     )
 
 
 def study_session_not_found_exception_handler(
     _request: Request,
     exc: StudySessionNotFoundError,
-):
-    return JSONResponse(
-        status_code=404,
-        content={"detail": str(exc)},
+) -> JSONResponse:
+    return _error_response(
+        404,
+        "STUDY_SESSION_NOT_FOUND",
+        str(exc),
     )
 
 
 def study_session_already_active_exception_handler(
     _request: Request,
     exc: StudySessionAlreadyActiveError,
-):
-    return JSONResponse(
-        status_code=409,
-        content={"detail": str(exc)},
+) -> JSONResponse:
+    return _error_response(
+        409,
+        "STUDY_SESSION_ALREADY_ACTIVE",
+        str(exc),
     )
 
 
 def sub_subject_not_found_exception_handler(
     _request: Request,
     exc: SubSubjectNotFoundError,
-):
-    return JSONResponse(
-        status_code=404,
-        content={"detail": str(exc)},
+) -> JSONResponse:
+    return _error_response(
+        404,
+        "SUB_SUBJECT_NOT_FOUND",
+        str(exc),
     )
 
 
 def sub_subject_does_not_belong_to_subject_exception_handler(
     _request: Request,
     exc: SubSubjectDoesNotBelongToSubjectError,
-):
-    return JSONResponse(
-        status_code=400,
-        content={"detail": str(exc)},
+) -> JSONResponse:
+    return _error_response(
+        400,
+        "SUB_SUBJECT_DOES_NOT_BELONG_TO_SUBJECT",
+        str(exc),
     )
 
 
 def invalid_study_session_state_exception_handler(
     _request: Request,
     exc: InvalidStudySessionStateError,
-):
-    return JSONResponse(
-        status_code=400,
-        content={"detail": str(exc)},
+) -> JSONResponse:
+    return _error_response(
+        400,
+        "INVALID_STUDY_SESSION_STATE",
+        str(exc),
     )
 
 
@@ -100,38 +152,39 @@ def register_exception_handlers(app: FastAPI) -> None:
         SubjectNotFoundError,
         subject_not_found_exception_handler,
     )
-
     app.add_exception_handler(
         SubjectAlreadyExistsError,
         subject_already_exists_exception_handler,
     )
-
     app.add_exception_handler(
         SubjectHasDependentsError,
         subject_has_dependents_exception_handler,
     )
-
     app.add_exception_handler(
         StudySessionNotFoundError,
         study_session_not_found_exception_handler,
     )
-
     app.add_exception_handler(
         StudySessionAlreadyActiveError,
         study_session_already_active_exception_handler,
     )
-
     app.add_exception_handler(
         SubSubjectNotFoundError,
         sub_subject_not_found_exception_handler,
     )
-
     app.add_exception_handler(
         SubSubjectDoesNotBelongToSubjectError,
         sub_subject_does_not_belong_to_subject_exception_handler,
     )
-
     app.add_exception_handler(
         InvalidStudySessionStateError,
         invalid_study_session_state_exception_handler,
+    )
+    app.add_exception_handler(
+        RequestValidationError,
+        request_validation_exception_handler,
+    )
+    app.add_exception_handler(
+        Exception,
+        unexpected_exception_handler,
     )

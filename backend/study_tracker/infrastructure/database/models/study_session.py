@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum as SqlEnum, ForeignKey, func
+from sqlalchemy import CheckConstraint, DateTime, Enum as SqlEnum, ForeignKey, func
 from sqlalchemy.orm import Mapped, mapped_column
 from study_tracker.domain.entities.study_session import StudySessionStatus
 
@@ -9,6 +9,32 @@ from study_tracker.infrastructure.database.base import Base
 
 class StudySession(Base):
     __tablename__ = "study_sessions"
+
+    __table_args__ = (
+        CheckConstraint(
+            "duration_seconds IS NULL OR duration_seconds >= 0",
+            name="ck_study_sessions_duration_non_negative",
+        ),
+        CheckConstraint(
+            "paused_duration_seconds >= 0",
+            name="ck_study_sessions_paused_duration_non_negative",
+        ),
+        CheckConstraint(
+            "(status = 'finished' AND ended_at IS NOT NULL)"
+            "OR (status <> 'finished' AND ended_at IS NULL)",
+            name="ck_study_sessions_finished_ended_at",
+        ),
+        CheckConstraint(
+            "(status = 'finished' AND duration_seconds IS NOT NULL) "
+            "OR (status <> 'finished')",
+            name="ck_study_sessions_finished_duration",
+        ),
+        CheckConstraint(
+            "(status = 'paused' AND paused_at IS NOT NULL) "
+            "OR (status <> 'paused' AND paused_at IS NULL)",
+            name="ck_study_sessions_paused_at",
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
 

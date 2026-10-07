@@ -4,7 +4,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     app_name: str
     app_env: str
+    cors_origin: str
 
+    postgres_host: str
     postgres_db: str
     postgres_user: str
     postgres_password: str
@@ -21,7 +23,7 @@ class Settings(BaseSettings):
         return (
             f"postgresql+psycopg://"
             f"{self.postgres_user}:{self.postgres_password}"
-            f"@localhost:{self.postgres_port}/{self.postgres_db}"
+            f"@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
         )
 
 

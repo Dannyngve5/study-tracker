@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
 from study_tracker.domain.entities.study_session import StudySession
@@ -42,7 +42,9 @@ class SQLAlchemyStudySessionRepository(StudySessionRepository):
         return self._to_domain(model)
 
     def get_all(self) -> list[StudySession]:
-        statement = select(StudySessionModel)
+        statement = select(StudySessionModel).order_by(
+            desc(StudySessionModel.started_at)
+        )
         models = self.session.scalars(statement).all()
 
         return [self._to_domain(model) for model in models]

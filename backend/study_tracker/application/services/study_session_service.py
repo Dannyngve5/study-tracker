@@ -37,22 +37,15 @@ class StudySessionService:
 
             self._ensure_no_active_session(uow)
 
-            study_session = StudySession(
+            study_session = StudySession.start(
                 subject_id=dto.subject_id,
                 sub_subject_id=dto.sub_subject_id,
                 started_at=now,
-                status=StudySessionStatus.RUNNING,
-                duration_seconds=0,
             )
 
             return uow.study_sessions.create(study_session)
 
     def create_session(self, dto: CreateStudySessionDTO) -> StudySession:
-        duration_seconds = self._calculate_duration(
-            dto.started_at,
-            dto.ended_at,
-        )
-
         with self.unit_of_work as uow:
             self._validate_subject_and_sub_subject(
                 uow,
@@ -64,10 +57,9 @@ class StudySessionService:
                 subject_id=dto.subject_id,
                 sub_subject_id=dto.sub_subject_id,
                 started_at=dto.started_at,
-                ended_at=dto.ended_at,
-                duration_seconds=duration_seconds,
-                status=StudySessionStatus.FINISHED,
             )
+
+            study_session.finish_manually(dto.ended_at)
 
             return uow.study_sessions.create(study_session)
 
@@ -93,11 +85,6 @@ class StudySessionService:
         study_session_id: int,
         dto: UpdateStudySessionDTO,
     ) -> StudySession:
-        duration_seconds = self._calculate_duration(
-            dto.started_at,
-            dto.ended_at,
-        )
-
         with self.unit_of_work as uow:
             study_session = uow.study_sessions.get_by_id(study_session_id)
 
@@ -115,11 +102,12 @@ class StudySessionService:
                 dto.sub_subject_id,
             )
 
-            study_session.subject_id = dto.subject_id
-            study_session.sub_subject_id = dto.sub_subject_id
-            study_session.started_at = dto.started_at
-            study_session.ended_at = dto.ended_at
-            study_session.duration_seconds = duration_seconds
+            study_session.update_manually(
+                subject_id=dto.subject_id,
+                sub_subject_id=dto.sub_subject_id,
+                started_at=dto.started_at,
+                ended_at=dto.ended_at,
+            )
 
             updated_session = uow.study_sessions.update(study_session)
 
@@ -137,13 +125,7 @@ class StudySessionService:
             if study_session is None:
                 raise StudySessionNotFoundError(study_session_id)
 
-            if study_session.status is not StudySessionStatus.RUNNING:
-                raise InvalidStudySessionStateError(
-                    "Only a running study session can be paused"
-                )
-
-            study_session.status = StudySessionStatus.PAUSED
-            study_session.paused_at = now
+            study_session.pause(now)
 
             updated_session = uow.study_sessions.update(study_session)
 
@@ -161,21 +143,7 @@ class StudySessionService:
             if study_session is None:
                 raise StudySessionNotFoundError(study_session_id)
 
-            if study_session.status is not StudySessionStatus.PAUSED:
-                raise InvalidStudySessionStateError(
-                    "Only a paused study session can be resumed"
-                )
-
-            if study_session.paused_at is None:
-                raise InvalidStudySessionStateError(
-                    "Paused study session does not have a pause timestamp"
-                )
-
-            elapsed_pause_seconds = int((now - study_session.paused_at).total_seconds())
-
-            study_session.paused_duration_seconds += elapsed_pause_seconds
-            study_session.paused_at = None
-            study_session.status = StudySessionStatus.RUNNING
+            study_session.resume(now)
 
             updated_session = uow.study_sessions.update(study_session)
 
@@ -185,9 +153,7 @@ class StudySessionService:
             return updated_session
 
     def stop_session(
-        self,
-        study_session_id: int,
-        ended_at: datetime | None = None,
+        self, study_session_id: int, ended_at: datetime | None = None
     ) -> StudySession:
         finish_time = ended_at or datetime.now(timezone.utc)
 
@@ -197,46 +163,7 @@ class StudySessionService:
             if study_session is None:
                 raise StudySessionNotFoundError(study_session_id)
 
-            if study_session.status is StudySessionStatus.FINISHED:
-                raise InvalidStudySessionStateError(
-                    "This study session is already finished"
-                )
-
-            if finish_time < study_session.started_at:
-                raise InvalidStudySessionStateError(
-                    "Finished time cannot be earlier than the session start time"
-                )
-
-            if (
-                study_session.status is StudySessionStatus.PAUSED
-                and study_session.paused_at is not None
-                and finish_time < study_session.paused_at
-            ):
-                raise InvalidStudySessionStateError(
-                    "Finished time cannot be earlier than the pause time"
-                )
-
-            paused_duration_seconds = study_session.paused_duration_seconds
-
-            if (
-                study_session.status is StudySessionStatus.PAUSED
-                and study_session.paused_at is not None
-            ):
-                paused_duration_seconds += int(
-                    (finish_time - study_session.paused_at).total_seconds()
-                )
-
-            elapsed_total_seconds = max(
-                0,
-                int((finish_time - study_session.started_at).total_seconds())
-                - paused_duration_seconds,
-            )
-
-            study_session.ended_at = finish_time
-            study_session.duration_seconds = elapsed_total_seconds
-            study_session.paused_duration_seconds = paused_duration_seconds
-            study_session.status = StudySessionStatus.FINISHED
-            study_session.paused_at = None
+            study_session.finish(finish_time)
 
             updated_session = uow.study_sessions.update(study_session)
 
@@ -251,18 +178,6 @@ class StudySessionService:
 
             if not deleted:
                 raise StudySessionNotFoundError(study_session_id)
-
-    @staticmethod
-    def _calculate_duration(
-        started_at: datetime,
-        ended_at: datetime,
-    ) -> int:
-        if ended_at < started_at:
-            raise InvalidStudySessionStateError(
-                "The end date cannot be earlier than the start date"
-            )
-
-        return int((ended_at - started_at).total_seconds())
 
     @staticmethod
     def _validate_subject_and_sub_subject(

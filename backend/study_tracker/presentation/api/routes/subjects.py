@@ -8,6 +8,11 @@ from study_tracker.application.dto.subject import (
 )
 from study_tracker.application.services.subject_service import SubjectService
 from study_tracker.presentation.api.dependencies import get_subject_service
+from study_tracker.presentation.api.responses import (
+    ERROR_404,
+    ERROR_409,
+    ERROR_422,
+)
 from study_tracker.presentation.api.schemas.subject import SubjectResponse
 
 router = APIRouter(
@@ -20,6 +25,10 @@ router = APIRouter(
     "/",
     response_model=SubjectResponse,
     status_code=status.HTTP_201_CREATED,
+    responses={
+        409: ERROR_409,
+        422: ERROR_422,
+    },
 )
 def create_subject(
     dto: CreateSubjectDTO,
@@ -41,6 +50,10 @@ def get_subjects(
 @router.get(
     "/{subject_id}",
     response_model=SubjectResponse,
+    responses={
+        404: ERROR_404,
+        422: ERROR_422,
+    },
 )
 def get_subject(
     subject_id: Annotated[int, Path(gt=0)],
@@ -52,6 +65,11 @@ def get_subject(
 @router.put(
     "/{subject_id}",
     response_model=SubjectResponse,
+    responses={
+        404: ERROR_404,
+        409: ERROR_409,
+        422: ERROR_422,
+    },
 )
 def update_subject(
     subject_id: Annotated[int, Path(gt=0)],
@@ -64,6 +82,11 @@ def update_subject(
 @router.delete(
     "/{subject_id}",
     status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        404: ERROR_404,
+        409: ERROR_409,
+        422: ERROR_422,
+    },
 )
 def delete_subject(
     subject_id: Annotated[int, Path(gt=0)],
