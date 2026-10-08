@@ -1,6 +1,5 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-
 from study_tracker.domain.entities.sub_subject import SubSubject
 from study_tracker.domain.repositories.sub_subject_repository import (
     SubSubjectRepository,

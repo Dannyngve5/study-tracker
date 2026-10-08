@@ -40,3 +40,10 @@ class SubSubjectDoesNotBelongToSubjectError(Exception):
         super().__init__(
             f"Sub-subject {sub_subject_id} does not belong to subject {subject_id}"
         )
+
+
+class InvalidTimezoneError(Exception):
+
+    def __init__(self, timezone: str):
+        self.timezone = timezone
+        super().__init__(f"Invalid timezone: {timezone}")

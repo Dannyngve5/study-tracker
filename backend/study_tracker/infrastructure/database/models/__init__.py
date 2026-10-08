@@ -1,3 +1,3 @@
-from .subject import Subject
-from .sub_subject import SubSubject
-from .study_session import StudySession
+from .study_session import StudySession as StudySession
+from .sub_subject import SubSubject as SubSubject
+from .subject import Subject as Subject

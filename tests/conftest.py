@@ -2,7 +2,6 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
-
 from study_tracker.infrastructure.database.base import Base
 from study_tracker.infrastructure.database.config import settings
 from study_tracker.infrastructure.database.unit_of_work import UnitOfWork

@@ -1,100 +1,271 @@
 import { useEffect, useRef, useState } from "react";
 
-function StudyTimer({ selectedSubject }) {
-    const [elapsedSeconds, setElapsedSeconds] = useState(0);
-    const [status, setStatus] = useState("idle");
-    const [now, setNow] = useState(Date.now());
+const API_URL = "http://localhost:8000";
 
-    const startTimeRef = useRef(null);
+function StudyTimer({ selectedSubject }) {
+    const [session, setSession] = useState(null);
+    const [now, setNow] = useState(Date.now());
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    const intervalRef = useRef(null);
+
+    const isActive =
+        session?.status === "running" ||
+        session?.status === "paused";
 
     useEffect(() => {
-        if (status !== "running") {
+        async function loadActiveSession() {
+            try {
+                const response = await fetch(
+                    `${API_URL}/study-sessions/active`
+                );
+
+                if (!response.ok) {
+                    throw new Error("Could not load active session.");
+                }
+
+                const data = await response.json();
+
+                setSession(data);
+            } catch (error) {
+                setError(error.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        loadActiveSession();
+    }, []);
+
+    useEffect(() => {
+        if (session?.status !== "running") {
             return;
         }
 
-        const interval = setInterval(() => {
+        intervalRef.current = setInterval(() => {
             setNow(Date.now());
         }, 250);
 
         return () => {
-            clearInterval(interval);
+            clearInterval(intervalRef.current);
         };
-    }, [status]);
+    }, [session?.status]);
 
-    let totalSeconds = elapsedSeconds;
+    function getElapsedSeconds() {
+        if (!session) {
+            return 0;
+        }
 
-    if (status === "running" && startTimeRef.current !== null) {
-        const currentSegment = Math.floor(
-            (now - startTimeRef.current) / 1000
-        );
+        const startedAt = new Date(session.started_at).getTime();
+        const pausedDuration = session.paused_duration_seconds ?? 0;
 
-        totalSeconds += currentSegment;
+        if (session.status === "running") {
+            return Math.max(
+                0,
+                Math.floor(
+                    (now - startedAt) / 1000 - pausedDuration
+                )
+            );
+        }
+
+        if (session.status === "paused") {
+            const pausedAt = new Date(session.paused_at).getTime();
+
+            return Math.max(
+                0,
+                Math.floor(
+                    (pausedAt - startedAt) / 1000 - pausedDuration
+                )
+            );
+        }
+
+        if (session.status === "finished") {
+            return session.duration_seconds ?? 0;
+        }
+
+        return 0;
     }
+
+    const totalSeconds = getElapsedSeconds();
 
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
 
-    function handleStart() {
-        startTimeRef.current = Date.now();
-        setNow(Date.now());
-        setStatus("running");
-    }
-
-    function handlePause() {
-        if (startTimeRef.current === null) {
+    async function handleStart() {
+        if (!selectedSubject) {
             return;
         }
 
-        const currentSegment = Math.floor(
-            (Date.now() - startTimeRef.current) / 1000
-        );
+        try {
+            setError("");
 
-        setElapsedSeconds((previous) => previous + currentSegment);
-
-        startTimeRef.current = null;
-        setNow(Date.now());
-        setStatus("paused");
-    }
-
-    function handleResume() {
-        startTimeRef.current = Date.now();
-        setNow(Date.now());
-        setStatus("running");
-    }
-
-    function handleReset() {
-        startTimeRef.current = null;
-        setElapsedSeconds(0);
-        setNow(Date.now());
-        setStatus("idle");
-    }
-
-    function handleStop() {
-        let finalSeconds = elapsedSeconds;
-
-        if (status === "running" && startTimeRef.current !== null) {
-            const currentSegment = Math.floor(
-                (Date.now() - startTimeRef.current) / 1000
+            const response = await fetch(
+                `${API_URL}/study-sessions/start`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        subject_id: selectedSubject.id,
+                    }),
+                }
             );
 
-            finalSeconds += currentSegment;
+            if (!response.ok) {
+                if (response.status === 409) {
+                    throw new Error(
+                        "There is already an active study session."
+                    );
+                }
+
+                throw new Error("Could not start study session.");
+            }
+
+            const data = await response.json();
+
+            setSession(data);
+            setNow(Date.now());
+        } catch (error) {
+            setError(error.message);
+        }
+    }
+
+    async function handlePause() {
+        if (!session) {
+            return;
         }
 
-        console.log("Session finished:", {
-            subject: selectedSubject,
-            durationSeconds: finalSeconds,
-        });
+        try {
+            setError("");
 
-        startTimeRef.current = null;
-        setElapsedSeconds(finalSeconds);
-        setNow(Date.now());
-        setStatus("idle");
+            const response = await fetch(
+                `${API_URL}/study-sessions/${session.id}/pause`,
+                {
+                    method: "POST",
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Could not pause study session.");
+            }
+
+            const data = await response.json();
+
+            setSession(data);
+            setNow(Date.now());
+        } catch (error) {
+            setError(error.message);
+        }
+    }
+
+    async function handleResume() {
+        if (!session) {
+            return;
+        }
+
+        try {
+            setError("");
+
+            const response = await fetch(
+                `${API_URL}/study-sessions/${session.id}/resume`,
+                {
+                    method: "POST",
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Could not resume study session.");
+            }
+
+            const data = await response.json();
+
+            setSession(data);
+            setNow(Date.now());
+        } catch (error) {
+            setError(error.message);
+        }
+    }
+
+    async function handleStop() {
+        if (!session) {
+            return;
+        }
+
+        try {
+            setError("");
+
+            const response = await fetch(
+                `${API_URL}/study-sessions/${session.id}/stop`,
+                {
+                    method: "POST",
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Could not stop study session.");
+            }
+
+            const data = await response.json();
+
+            setSession(data);
+            setNow(Date.now());
+        } catch (error) {
+            setError(error.message);
+        }
+    }
+
+    async function handleReset() {
+        if (!session) {
+            setNow(Date.now());
+            return;
+        }
+
+        try {
+            setError("");
+
+            if (
+                session.status === "running" ||
+                session.status === "paused"
+            ) {
+                const stopResponse = await fetch(
+                    `${API_URL}/study-sessions/${session.id}/stop`,
+                    {
+                        method: "POST",
+                    }
+                );
+
+                if (!stopResponse.ok) {
+                    throw new Error("Could not reset study session.");
+                }
+            }
+
+            const deleteResponse = await fetch(
+                `${API_URL}/study-sessions/${session.id}`,
+                {
+                    method: "DELETE",
+                }
+            );
+
+            if (!deleteResponse.ok) {
+                throw new Error("Could not reset study session.");
+            }
+
+            setSession(null);
+            setNow(Date.now());
+        } catch (error) {
+            setError(error.message);
+        }
+    }
+
+    if (loading) {
+        return <p>Loading timer...</p>;
     }
 
     return (
         <div className="study-timer">
-
             <div className="tags-container">
                 {selectedSubject && (
                     <span className="subject-tag">
@@ -102,6 +273,8 @@ function StudyTimer({ selectedSubject }) {
                     </span>
                 )}
             </div>
+
+            {error && <p>{error}</p>}
 
             <div className="timer-container">
                 <div className="timer-display">
@@ -124,8 +297,7 @@ function StudyTimer({ selectedSubject }) {
             </div>
 
             <div className="buttons-container">
-
-                {status === "idle" && (
+                {!isActive && (
                     <button
                         className="start-button"
                         onClick={handleStart}
@@ -135,7 +307,7 @@ function StudyTimer({ selectedSubject }) {
                     </button>
                 )}
 
-                {status === "running" && (
+                {session?.status === "running" && (
                     <>
                         <button
                             className="pause-button"
@@ -160,7 +332,7 @@ function StudyTimer({ selectedSubject }) {
                     </>
                 )}
 
-                {status === "paused" && (
+                {session?.status === "paused" && (
                     <>
                         <button
                             className="resume-button"
@@ -184,7 +356,6 @@ function StudyTimer({ selectedSubject }) {
                         </button>
                     </>
                 )}
-
             </div>
         </div>
     );

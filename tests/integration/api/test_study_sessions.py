@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from fastapi.testclient import TestClient
 
@@ -323,8 +323,8 @@ def test_stop_finished_session_is_rejected(client: TestClient):
 def test_create_finished_session_manually(client: TestClient):
     subject = create_subject(client)
 
-    started_at = datetime.now(timezone.utc) - timedelta(hours=1)
-    ended_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC) - timedelta(hours=1)
+    ended_at = datetime.now(UTC)
 
     response = client.post(
         "/study-sessions/",
@@ -348,7 +348,7 @@ def test_create_finished_session_manually(client: TestClient):
 def test_create_manual_session_with_invalid_dates(client: TestClient):
     subject = create_subject(client)
 
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
     ended_at = started_at - timedelta(hours=1)
 
     response = client.post(
@@ -364,8 +364,8 @@ def test_create_manual_session_with_invalid_dates(client: TestClient):
 
 
 def test_create_manual_session_with_nonexistent_subject(client: TestClient):
-    started_at = datetime.now(timezone.utc) - timedelta(hours=1)
-    ended_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC) - timedelta(hours=1)
+    ended_at = datetime.now(UTC)
 
     response = client.post(
         "/study-sessions/",
@@ -390,8 +390,8 @@ def test_update_finished_session(client: TestClient):
 
     assert response.status_code == 200
 
-    started_at = datetime.now(timezone.utc) - timedelta(hours=2)
-    ended_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC) - timedelta(hours=2)
+    ended_at = datetime.now(UTC)
 
     response = client.put(
         f"/study-sessions/{session['id']}",
@@ -417,8 +417,8 @@ def test_update_running_session_is_rejected(client: TestClient):
 
     session = start_session(client, subject["id"])
 
-    started_at = datetime.now(timezone.utc) - timedelta(hours=1)
-    ended_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC) - timedelta(hours=1)
+    ended_at = datetime.now(UTC)
 
     response = client.put(
         f"/study-sessions/{session['id']}",
@@ -434,8 +434,8 @@ def test_update_running_session_is_rejected(client: TestClient):
 
 
 def test_update_nonexistent_session(client: TestClient):
-    started_at = datetime.now(timezone.utc) - timedelta(hours=1)
-    ended_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC) - timedelta(hours=1)
+    ended_at = datetime.now(UTC)
 
     response = client.put(
         "/study-sessions/999999",
@@ -461,7 +461,7 @@ def test_update_session_with_invalid_dates(client: TestClient):
 
     assert response.status_code == 200
 
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
     ended_at = started_at - timedelta(hours=1)
 
     response = client.put(

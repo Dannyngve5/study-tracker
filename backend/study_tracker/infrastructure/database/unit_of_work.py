@@ -1,9 +1,14 @@
+from collections.abc import Callable
 from typing import Self
 
+from sqlalchemy.orm import Session
 from study_tracker.domain.repositories.unit_of_work import (
     UnitOfWork as UnitOfWorkContract,
 )
 from study_tracker.infrastructure.database.connection import SessionLocal
+from study_tracker.infrastructure.repositories.SQLAlchemy_analytics_repository import (
+    SQLAlchemyAnalyticsRepository,
+)
 from study_tracker.infrastructure.repositories.SQLAlchemy_study_session_repository import (
     SQLAlchemyStudySessionRepository,
 )
@@ -13,9 +18,6 @@ from study_tracker.infrastructure.repositories.SQLAlchemy_sub_subject_repository
 from study_tracker.infrastructure.repositories.SQLAlchemy_subject_repository import (
     SQLAlchemySubjectRepository,
 )
-
-from sqlalchemy.orm import Session
-from collections.abc import Callable
 
 
 class UnitOfWork(UnitOfWorkContract):
@@ -30,6 +32,7 @@ class UnitOfWork(UnitOfWorkContract):
         self.subjects = SQLAlchemySubjectRepository(self.session)
         self.sub_subjects = SQLAlchemySubSubjectRepository(self.session)
         self.study_sessions = SQLAlchemyStudySessionRepository(self.session)
+        self.analytics = SQLAlchemyAnalyticsRepository(self.session)
 
         return self
 

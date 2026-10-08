@@ -1,9 +1,10 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
 import logging
 
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from study_tracker.application.exceptions import (
+    InvalidTimezoneError,
     StudySessionAlreadyActiveError,
     StudySessionNotFoundError,
     SubjectNotFoundError,
@@ -42,6 +43,17 @@ def request_validation_exception_handler(
         422,
         "VALIDATION_ERROR",
         "Request validation failed",
+    )
+
+
+def invalid_timezone_exception_handler(
+    _request: Request,
+    exc: InvalidTimezoneError,
+) -> JSONResponse:
+    return _error_response(
+        400,
+        "INVALID_TIMEZONE",
+        str(exc),
     )
 
 
@@ -187,4 +199,8 @@ def register_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(
         Exception,
         unexpected_exception_handler,
+    )
+    app.add_exception_handler(
+        InvalidTimezoneError,
+        invalid_timezone_exception_handler,
     )

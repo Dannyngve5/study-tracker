@@ -1,7 +1,6 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Path, status
-
 from study_tracker.application.dto.study_session import (
     CreateStudySessionDTO,
     StartSessionDTO,

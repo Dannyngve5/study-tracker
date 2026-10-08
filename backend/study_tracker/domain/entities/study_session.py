@@ -1,13 +1,7 @@
 from datetime import datetime
-from enum import Enum
 
+from study_tracker.domain.enums.study_session_status import StudySessionStatus
 from study_tracker.domain.exceptions import InvalidStudySessionStateError
-
-
-class StudySessionStatus(str, Enum):
-    RUNNING = "running"
-    PAUSED = "paused"
-    FINISHED = "finished"
 
 
 class StudySession:

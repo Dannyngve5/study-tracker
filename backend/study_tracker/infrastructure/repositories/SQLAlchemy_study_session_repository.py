@@ -1,13 +1,12 @@
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
-
 from study_tracker.domain.entities.study_session import StudySession
+from study_tracker.domain.enums.study_session_status import StudySessionStatus
 from study_tracker.domain.repositories.study_session_repository import (
     StudySessionRepository,
 )
 from study_tracker.infrastructure.database.models.study_session import (
     StudySession as StudySessionModel,
-    StudySessionStatus,
 )
 
 

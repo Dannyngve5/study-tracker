@@ -1,8 +1,7 @@
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
-
-from study_tracker.domain.entities.study_session import StudySessionStatus
+from study_tracker.domain.enums.study_session_status import StudySessionStatus
 
 
 class StudySessionResponse(BaseModel):

@@ -1,9 +1,9 @@
 from datetime import datetime
 
-from sqlalchemy import CheckConstraint, DateTime, Enum as SqlEnum, ForeignKey, func
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, func
+from sqlalchemy import Enum as SqlEnum
 from sqlalchemy.orm import Mapped, mapped_column
-from study_tracker.domain.entities.study_session import StudySessionStatus
-
+from study_tracker.domain.enums.study_session_status import StudySessionStatus
 from study_tracker.infrastructure.database.base import Base
 
 

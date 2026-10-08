@@ -1,9 +1,8 @@
 import pytest
 from sqlalchemy.exc import IntegrityError
-
+from study_tracker.domain.enums.study_session_status import StudySessionStatus
 from study_tracker.infrastructure.database.models.study_session import (
     StudySession as StudySessionModel,
-    StudySessionStatus,
 )
 from study_tracker.infrastructure.database.models.subject import (
     Subject as SubjectModel,

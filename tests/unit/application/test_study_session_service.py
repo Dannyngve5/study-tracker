@@ -1,7 +1,6 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
-
 from study_tracker.application.dto.study_session import (
     CreateStudySessionDTO,
     StartSessionDTO,
@@ -17,11 +16,10 @@ from study_tracker.application.exceptions import (
 from study_tracker.application.services.study_session_service import (
     StudySessionService,
 )
-from study_tracker.domain.entities.study_session import (
-    StudySession,
-    StudySessionStatus,
-)
+from study_tracker.domain.entities.study_session import StudySession
 from study_tracker.domain.entities.subject import Subject
+from study_tracker.domain.enums.study_session_status import StudySessionStatus
+from study_tracker.domain.exceptions import InvalidStudySessionStateError
 
 
 class FakeSubjectRepository:
@@ -118,7 +116,7 @@ def test_start_session_creates_running_session():
 def test_start_session_rejects_when_session_is_already_active():
     active_session = StudySession.start(
         subject_id=1,
-        started_at=datetime.now(timezone.utc),
+        started_at=datetime.now(UTC),
     )
 
     service = StudySessionService(FakeUnitOfWork(active_session=active_session))
@@ -174,7 +172,7 @@ def test_start_session_rejects_sub_subject_from_different_subject():
 def test_pause_session_pauses_running_session():
     session = StudySession.start(
         subject_id=1,
-        started_at=datetime.now(timezone.utc),
+        started_at=datetime.now(UTC),
     )
     session.id = 1
 
@@ -187,7 +185,7 @@ def test_pause_session_pauses_running_session():
 
 
 def test_resume_session_resumes_paused_session():
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
 
     session = StudySession.start(
         subject_id=1,
@@ -205,7 +203,7 @@ def test_resume_session_resumes_paused_session():
 
 
 def test_stop_session_finishes_running_session():
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
 
     session = StudySession.start(
         subject_id=1,
@@ -223,8 +221,8 @@ def test_stop_session_finishes_running_session():
 
 
 def test_create_session_creates_finished_session():
-    started_at = datetime(2026, 1, 1, 10, 0, tzinfo=timezone.utc)
-    ended_at = datetime(2026, 1, 1, 11, 0, tzinfo=timezone.utc)
+    started_at = datetime(2026, 1, 1, 10, 0, tzinfo=UTC)
+    ended_at = datetime(2026, 1, 1, 11, 0, tzinfo=UTC)
 
     service = StudySessionService(FakeUnitOfWork())
 
@@ -244,7 +242,7 @@ def test_create_session_creates_finished_session():
 def test_get_session_returns_existing_session():
     session = StudySession.start(
         subject_id=1,
-        started_at=datetime.now(timezone.utc),
+        started_at=datetime.now(UTC),
     )
     session.id = 1
 
@@ -265,13 +263,13 @@ def test_get_session_rejects_when_session_does_not_exist():
 def test_get_sessions_returns_all_sessions():
     session_1 = StudySession.start(
         subject_id=1,
-        started_at=datetime.now(timezone.utc),
+        started_at=datetime.now(UTC),
     )
     session_1.id = 1
 
     session_2 = StudySession.start(
         subject_id=1,
-        started_at=datetime.now(timezone.utc),
+        started_at=datetime.now(UTC),
     )
     session_2.id = 2
 
@@ -285,7 +283,7 @@ def test_get_sessions_returns_all_sessions():
 def test_get_active_session_returns_active_session():
     active_session = StudySession.start(
         subject_id=1,
-        started_at=datetime.now(timezone.utc),
+        started_at=datetime.now(UTC),
     )
 
     service = StudySessionService(FakeUnitOfWork(active_session=active_session))
@@ -310,7 +308,7 @@ def test_update_session_updates_finished_session():
         1,
         10,
         0,
-        tzinfo=timezone.utc,
+        tzinfo=UTC,
     )
     original_ended_at = datetime(
         2026,
@@ -318,7 +316,7 @@ def test_update_session_updates_finished_session():
         1,
         11,
         0,
-        tzinfo=timezone.utc,
+        tzinfo=UTC,
     )
 
     session = StudySession(
@@ -334,7 +332,7 @@ def test_update_session_updates_finished_session():
         2,
         14,
         0,
-        tzinfo=timezone.utc,
+        tzinfo=UTC,
     )
     new_ended_at = datetime(
         2026,
@@ -342,7 +340,7 @@ def test_update_session_updates_finished_session():
         2,
         16,
         0,
-        tzinfo=timezone.utc,
+        tzinfo=UTC,
     )
 
     service = StudySessionService(FakeUnitOfWork(sessions=[session]))
@@ -364,7 +362,7 @@ def test_update_session_updates_finished_session():
 def test_update_session_rejects_non_finished_session():
     session = StudySession.start(
         subject_id=1,
-        started_at=datetime.now(timezone.utc),
+        started_at=datetime.now(UTC),
     )
     session.id = 1
 
@@ -372,18 +370,18 @@ def test_update_session_rejects_non_finished_session():
 
     dto = UpdateStudySessionDTO(
         subject_id=1,
-        started_at=datetime(2026, 1, 1, 10, 0, tzinfo=timezone.utc),
-        ended_at=datetime(2026, 1, 1, 11, 0, tzinfo=timezone.utc),
+        started_at=datetime(2026, 1, 1, 10, 0, tzinfo=UTC),
+        ended_at=datetime(2026, 1, 1, 11, 0, tzinfo=UTC),
     )
 
-    with pytest.raises(Exception):
+    with pytest.raises(InvalidStudySessionStateError):
         service.update_session(1, dto)
 
 
 def test_delete_session_deletes_existing_session():
     session = StudySession.start(
         subject_id=1,
-        started_at=datetime.now(timezone.utc),
+        started_at=datetime.now(UTC),
     )
     session.id = 1
 

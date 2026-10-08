@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from study_tracker.application.dto.study_session import (
     CreateStudySessionDTO,
@@ -12,10 +12,8 @@ from study_tracker.application.exceptions import (
     SubSubjectDoesNotBelongToSubjectError,
     SubSubjectNotFoundError,
 )
-from study_tracker.domain.entities.study_session import (
-    StudySession,
-    StudySessionStatus,
-)
+from study_tracker.domain.entities.study_session import StudySession
+from study_tracker.domain.enums.study_session_status import StudySessionStatus
 from study_tracker.domain.exceptions import InvalidStudySessionStateError
 from study_tracker.domain.repositories.unit_of_work import UnitOfWork
 
@@ -26,7 +24,7 @@ class StudySessionService:
         self.unit_of_work = unit_of_work
 
     def start_session(self, dto: StartSessionDTO) -> StudySession:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         with self.unit_of_work as uow:
             self._validate_subject_and_sub_subject(
@@ -117,7 +115,7 @@ class StudySessionService:
             return updated_session
 
     def pause_session(self, study_session_id: int) -> StudySession:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         with self.unit_of_work as uow:
             study_session = uow.study_sessions.get_by_id(study_session_id)
@@ -135,7 +133,7 @@ class StudySessionService:
             return updated_session
 
     def resume_session(self, study_session_id: int) -> StudySession:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         with self.unit_of_work as uow:
             study_session = uow.study_sessions.get_by_id(study_session_id)
@@ -155,7 +153,7 @@ class StudySessionService:
     def stop_session(
         self, study_session_id: int, ended_at: datetime | None = None
     ) -> StudySession:
-        finish_time = ended_at or datetime.now(timezone.utc)
+        finish_time = ended_at or datetime.now(UTC)
 
         with self.unit_of_work as uow:
             study_session = uow.study_sessions.get_by_id(study_session_id)
