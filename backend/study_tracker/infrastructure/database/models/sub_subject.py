@@ -1,12 +1,21 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, func
+from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
+
 from study_tracker.infrastructure.database.base import Base
 
 
 class SubSubject(Base):
     __tablename__ = "sub_subjects"
+
+    __table_args__ = (
+        UniqueConstraint(
+            "subject_id",
+            "name",
+            name="uq_sub_subjects_subject_id_name",
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
 

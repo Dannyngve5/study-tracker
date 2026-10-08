@@ -47,3 +47,13 @@ class InvalidTimezoneError(Exception):
     def __init__(self, timezone: str):
         self.timezone = timezone
         super().__init__(f"Invalid timezone: {timezone}")
+
+
+class SubSubjectNotFoundError(Exception):
+    def __init__(self, sub_subject_id: int):
+        super().__init__(f"SubSubject with id {sub_subject_id} was not found")
+
+
+class SubjectNotFoundForSubSubjectError(Exception):
+    def __init__(self, subject_id: int):
+        super().__init__(f"Subject with id {subject_id} was not found")

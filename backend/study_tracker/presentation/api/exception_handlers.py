@@ -8,6 +8,7 @@ from study_tracker.application.exceptions import (
     StudySessionAlreadyActiveError,
     StudySessionNotFoundError,
     SubjectNotFoundError,
+    SubjectNotFoundForSubSubjectError,
     SubSubjectDoesNotBelongToSubjectError,
     SubSubjectNotFoundError,
 )
@@ -15,6 +16,8 @@ from study_tracker.domain.exceptions import (
     InvalidStudySessionStateError,
     SubjectAlreadyExistsError,
     SubjectHasDependentsError,
+    SubSubjectAlreadyExistsError,
+    SubSubjectHasDependentsError,
 )
 
 logger = logging.getLogger(__name__)
@@ -137,6 +140,39 @@ def sub_subject_not_found_exception_handler(
     )
 
 
+def subject_not_found_for_sub_subject_exception_handler(
+    _request: Request,
+    exc: SubjectNotFoundForSubSubjectError,
+) -> JSONResponse:
+    return _error_response(
+        404,
+        "SUBJECT_NOT_FOUND",
+        str(exc),
+    )
+
+
+def sub_subject_already_exists_exception_handler(
+    _request: Request,
+    exc: SubSubjectAlreadyExistsError,
+) -> JSONResponse:
+    return _error_response(
+        409,
+        "SUB_SUBJECT_ALREADY_EXISTS",
+        str(exc),
+    )
+
+
+def sub_subject_has_dependents_exception_handler(
+    _request: Request,
+    exc: SubSubjectHasDependentsError,
+) -> JSONResponse:
+    return _error_response(
+        409,
+        "SUB_SUBJECT_HAS_DEPENDENTS",
+        str(exc),
+    )
+
+
 def sub_subject_does_not_belong_to_subject_exception_handler(
     _request: Request,
     exc: SubSubjectDoesNotBelongToSubjectError,
@@ -183,6 +219,18 @@ def register_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(
         SubSubjectNotFoundError,
         sub_subject_not_found_exception_handler,
+    )
+    app.add_exception_handler(
+        SubjectNotFoundForSubSubjectError,
+        subject_not_found_for_sub_subject_exception_handler,
+    )
+    app.add_exception_handler(
+        SubSubjectAlreadyExistsError,
+        sub_subject_already_exists_exception_handler,
+    )
+    app.add_exception_handler(
+        SubSubjectHasDependentsError,
+        sub_subject_has_dependents_exception_handler,
     )
     app.add_exception_handler(
         SubSubjectDoesNotBelongToSubjectError,

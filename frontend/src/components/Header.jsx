@@ -1,15 +1,16 @@
+import { Link } from "react-router-dom";
+
 function Header() {
     return (
         <header>
             <h1>Study Tracker</h1>
-            <nav>
-                <a href="/">Dashboard</a>
-                <a href="/History">History</a>
-                <a href="/Stats">Stats</a>
 
+            <nav>
+                <Link to="/">Dashboard</Link>
+                <Link to="/history">History</Link>
             </nav>
         </header>
-    )
+    );
 }
 
-export default Header
+export default Header;

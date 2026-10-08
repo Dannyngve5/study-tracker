@@ -1,6 +1,12 @@
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
+
 from study_tracker.domain.entities.sub_subject import SubSubject
+from study_tracker.domain.exceptions import (
+    SubSubjectAlreadyExistsError,
+    SubSubjectHasDependentsError,
+)
 from study_tracker.domain.repositories.sub_subject_repository import (
     SubSubjectRepository,
 )
@@ -22,7 +28,17 @@ class SQLAlchemySubSubjectRepository(SubSubjectRepository):
         )
 
         self.session.add(model)
-        self.session.flush()
+
+        try:
+            self.session.flush()
+        except IntegrityError as error:
+            if self._is_name_conflict(error):
+                raise SubSubjectAlreadyExistsError(
+                    sub_subject.subject_id,
+                    sub_subject.name,
+                ) from error
+
+            raise
 
         return self._to_domain(model)
 
@@ -50,7 +66,16 @@ class SQLAlchemySubSubjectRepository(SubSubjectRepository):
         model.name = sub_subject.name
         model.description = sub_subject.description
 
-        self.session.flush()
+        try:
+            self.session.flush()
+        except IntegrityError as error:
+            if self._is_name_conflict(error):
+                raise SubSubjectAlreadyExistsError(
+                    sub_subject.subject_id,
+                    sub_subject.name,
+                ) from error
+
+            raise
 
         return self._to_domain(model)
 
@@ -61,9 +86,38 @@ class SQLAlchemySubSubjectRepository(SubSubjectRepository):
             return False
 
         self.session.delete(model)
-        self.session.flush()
+
+        try:
+            self.session.flush()
+        except IntegrityError as error:
+            if self._is_dependents_conflict(error):
+                raise SubSubjectHasDependentsError(sub_subject_id) from error
+
+            raise
 
         return True
+
+    @staticmethod
+    def _is_name_conflict(error: IntegrityError) -> bool:
+        original_error = error.orig
+        diagnostic = getattr(original_error, "diag", None)
+
+        return (
+            getattr(original_error, "sqlstate", None) == "23505"
+            and getattr(diagnostic, "constraint_name", None)
+            == "uq_sub_subjects_subject_id_name"
+        )
+
+    @staticmethod
+    def _is_dependents_conflict(error: IntegrityError) -> bool:
+        original_error = error.orig
+        diagnostic = getattr(original_error, "diag", None)
+
+        return (
+            getattr(original_error, "sqlstate", None) == "23503"
+            and getattr(diagnostic, "constraint_name", None)
+            == "fk_study_sessions_sub_subject_id_sub_subjects"
+        )
 
     @staticmethod
     def _to_domain(model: SubSubjectModel) -> SubSubject:

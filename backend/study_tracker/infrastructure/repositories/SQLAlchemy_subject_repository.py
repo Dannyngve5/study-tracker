@@ -115,11 +115,9 @@ class SQLAlchemySubjectRepository(SubjectRepository):
     def _is_foreign_key_conflict(error: IntegrityError) -> bool:
         original_error = error.orig
         diagnostic = getattr(original_error, "diag", None)
-        return (
-            getattr(original_error, "sqlstate", None) == "23503"
-            and getattr(diagnostic, "constraint_name", None)
-            in {
-                "fk_subsubjects_subject_id_subjects",
-                "fk_study_sessions_subject_id_subjects",
-            }
-        )
+        return getattr(original_error, "sqlstate", None) == "23503" and getattr(
+            diagnostic, "constraint_name", None
+        ) in {
+            "fk_subsubjects_subject_id_subjects",
+            "fk_study_sessions_subject_id_subjects",
+        }

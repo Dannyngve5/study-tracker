@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 const API_URL = "http://localhost:8000";
 
-function StudyTimer({ selectedSubject }) {
+function StudyTimer({ selectedSubject, onSubjectLockedChange }) {
     const [session, setSession] = useState(null);
     const [now, setNow] = useState(Date.now());
     const [loading, setLoading] = useState(true);
@@ -13,6 +13,14 @@ function StudyTimer({ selectedSubject }) {
     const isActive =
         session?.status === "running" ||
         session?.status === "paused";
+    
+        
+
+    useEffect(() => {
+        if (onSubjectLockedChange) {
+            onSubjectLockedChange(isActive);
+        }
+    }, [isActive, onSubjectLockedChange]);
 
     useEffect(() => {
         async function loadActiveSession() {
@@ -58,7 +66,8 @@ function StudyTimer({ selectedSubject }) {
         }
 
         const startedAt = new Date(session.started_at).getTime();
-        const pausedDuration = session.paused_duration_seconds ?? 0;
+        const pausedDuration =
+            session.paused_duration_seconds ?? 0;
 
         if (session.status === "running") {
             return Math.max(

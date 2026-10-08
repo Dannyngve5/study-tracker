@@ -47,7 +47,10 @@ class StudySession(Base):
     )
 
     sub_subject_id: Mapped[int | None] = mapped_column(
-        ForeignKey("sub_subjects.id"),
+        ForeignKey(
+            "sub_subjects.id",
+            name="fk_study_sessions_sub_subject_id_sub_subjects",
+        ),
         nullable=True,
     )
 
