@@ -32,8 +32,17 @@ class GroupedSessionResponse(BaseModel):
 
 class AnalyticsSummaryResponse(BaseModel):
     today_seconds: int
+    today_sessions: int
+
     this_week_seconds: int
+    this_week_sessions: int
+
+    this_month_seconds: int
+    this_month_sessions: int
+
     all_time_seconds: int
+    all_time_sessions: int
+
     top_subjects: list[TopSubjectResponse]
     recent_activity: list[RecentActivityResponse]
 

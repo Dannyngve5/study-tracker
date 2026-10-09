@@ -33,6 +33,12 @@ class DateRangeService:
                 user_timezone,
             )
 
+        elif period == Period.THIS_MONTH:
+            start_local, end_local = self._calendar_month_range(
+                now,
+                user_timezone,
+            )
+
         else:
             raise ValueError(f"Unsupported summary period: {period}")
 

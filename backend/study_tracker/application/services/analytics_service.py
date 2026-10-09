@@ -40,8 +40,18 @@ class AnalyticsService:
             period=Period.THIS_WEEK,
         )
 
+        this_month_start, this_month_end = self.date_range_service.get_summary_range(
+            timezone=timezone,
+            period=Period.THIS_MONTH,
+        )
+
         with self.unit_of_work as uow:
             today_seconds = uow.analytics.get_total(
+                start_date=today_start,
+                end_date=today_end,
+                subject_id=subject_id,
+            )
+            today_sessions = uow.analytics.count_sessions(
                 start_date=today_start,
                 end_date=today_end,
                 subject_id=subject_id,
@@ -52,8 +62,27 @@ class AnalyticsService:
                 end_date=this_week_end,
                 subject_id=subject_id,
             )
+            this_week_sessions = uow.analytics.count_sessions(
+                start_date=this_week_start,
+                end_date=this_week_end,
+                subject_id=subject_id,
+            )
+
+            this_month_seconds = uow.analytics.get_total(
+                start_date=this_month_start,
+                end_date=this_month_end,
+                subject_id=subject_id,
+            )
+            this_month_sessions = uow.analytics.count_sessions(
+                start_date=this_month_start,
+                end_date=this_month_end,
+                subject_id=subject_id,
+            )
 
             all_time_seconds = uow.analytics.get_total(
+                subject_id=subject_id,
+            )
+            all_time_sessions = uow.analytics.count_sessions(
                 subject_id=subject_id,
             )
 
@@ -80,8 +109,13 @@ class AnalyticsService:
 
             return AnalyticsSummaryDTO(
                 today_seconds=today_seconds,
+                today_sessions=today_sessions,
                 this_week_seconds=this_week_seconds,
+                this_week_sessions=this_week_sessions,
+                this_month_seconds=this_month_seconds,
+                this_month_sessions=this_month_sessions,
                 all_time_seconds=all_time_seconds,
+                all_time_sessions=all_time_sessions,
                 top_subjects=top_subjects,
                 recent_activity=recent_activity,
             )

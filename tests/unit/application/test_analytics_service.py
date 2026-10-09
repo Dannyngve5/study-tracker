@@ -28,6 +28,10 @@ def make_service():
             datetime(2026, 10, 5, 4, 0, tzinfo=UTC),
             datetime(2026, 10, 12, 4, 0, tzinfo=UTC),
         ),
+        (
+            datetime(2026, 10, 1, 4, 0, tzinfo=UTC),
+            datetime(2026, 11, 1, 4, 0, tzinfo=UTC),
+        ),
     ]
     date_range_service.get_history_range.return_value = (
         datetime(2026, 10, 1, tzinfo=UTC),
@@ -44,7 +48,7 @@ def make_service():
 
 def test_get_summary_returns_totals_top_subjects_and_recent_activity():
     service, unit_of_work, repository, date_range_service = make_service()
-    repository.get_total.side_effect = [3600, 7200, 18000]
+    repository.get_total.side_effect = [3600, 7200, 18000, 36000]
     repository.get_top_subjects.return_value = [
         ("Python", 9000),
         ("Math", 7000),
@@ -63,28 +67,45 @@ def test_get_summary_returns_totals_top_subjects_and_recent_activity():
 
     assert result.today_seconds == 3600
     assert result.this_week_seconds == 7200
-    assert result.all_time_seconds == 18000
-    assert [item.subject_name for item in result.top_subjects] == ["Python", "Math"]
+    assert result.this_month_seconds == 18000
+    assert result.all_time_seconds == 36000
+    assert result.top_subjects[0].subject_name == "Python"
+    assert result.top_subjects[1].subject_name == "Math"
     assert result.recent_activity[0].session_id == 8
     assert result.recent_activity[0].subject_name == "Python"
-    assert repository.get_total.call_count == 3
+
+    assert repository.get_total.call_count == 4
     assert repository.get_total.call_args_list[0].kwargs == {
         "start_date": datetime(2026, 10, 8, 4, 0, tzinfo=UTC),
         "end_date": datetime(2026, 10, 9, 4, 0, tzinfo=UTC),
         "subject_id": 3,
     }
-    assert repository.get_total.call_args_list[1].kwargs["subject_id"] == 3
-    assert repository.get_total.call_args_list[2].kwargs == {"subject_id": 3}
+    assert repository.get_total.call_args_list[1].kwargs == {
+        "start_date": datetime(2026, 10, 5, 4, 0, tzinfo=UTC),
+        "end_date": datetime(2026, 10, 12, 4, 0, tzinfo=UTC),
+        "subject_id": 3,
+    }
+    assert repository.get_total.call_args_list[2].kwargs == {
+        "start_date": datetime(2026, 10, 1, 4, 0, tzinfo=UTC),
+        "end_date": datetime(2026, 11, 1, 4, 0, tzinfo=UTC),
+        "subject_id": 3,
+    }
+    assert repository.get_total.call_args_list[3].kwargs == {
+        "subject_id": 3,
+    }
     repository.get_top_subjects.assert_called_once_with(limit=5)
     repository.get_recent_activity.assert_called_once_with(limit=5)
-    assert date_range_service.get_summary_range.call_count == 2
+    assert date_range_service.get_summary_range.call_count == 3
     unit_of_work.__enter__.assert_called_once()
 
 
 def test_get_sessions_applies_filters_and_returns_pagination_metadata():
     service, _, repository, date_range_service = make_service()
     repository.count_sessions.return_value = 3
-    repository.get_sessions.return_value = [SimpleNamespace(id=11), SimpleNamespace(id=10)]
+    repository.get_sessions.return_value = [
+        SimpleNamespace(id=11),
+        SimpleNamespace(id=10),
+    ]
     filters = HistoryFiltersDTO(
         subject_id=4,
         period=HistoryPeriod.THIS_MONTH,
@@ -127,7 +148,10 @@ def test_get_sessions_applies_filters_and_returns_pagination_metadata():
 def test_get_sessions_sets_has_more_when_another_page_exists():
     service, _, repository, _ = make_service()
     repository.count_sessions.return_value = 5
-    repository.get_sessions.return_value = [SimpleNamespace(id=1), SimpleNamespace(id=2)]
+    repository.get_sessions.return_value = [
+        SimpleNamespace(id=1),
+        SimpleNamespace(id=2),
+    ]
 
     result = service.get_sessions(
         filters=HistoryFiltersDTO(),

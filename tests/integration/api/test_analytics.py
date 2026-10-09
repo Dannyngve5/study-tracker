@@ -24,11 +24,14 @@ class FakeAnalyticsService:
         self.summary_args = {"timezone": timezone, "subject_id": subject_id}
         return AnalyticsSummaryDTO(
             today_seconds=3600,
+            today_sessions=1,
             this_week_seconds=7200,
+            this_week_sessions=2,
+            this_month_seconds=18000,
+            this_month_sessions=3,
             all_time_seconds=18000,
-            top_subjects=[
-                TopSubjectDTO(subject_name="Python", duration_seconds=9000)
-            ],
+            all_time_sessions=6,
+            top_subjects=[TopSubjectDTO(subject_name="Python", duration_seconds=9000)],
             recent_activity=[
                 RecentActivityDTO(
                     session_id=7,
@@ -99,11 +102,19 @@ def test_summary_endpoint_returns_panels_and_forwards_subject_filter(api_client)
     )
 
     assert response.status_code == 200
-    assert response.json()["today_seconds"] == 3600
-    assert response.json()["top_subjects"] == [
+    data = response.json()
+    assert data["today_seconds"] == 3600
+    assert data["today_sessions"] == 1
+    assert data["this_week_seconds"] == 7200
+    assert data["this_week_sessions"] == 2
+    assert data["this_month_seconds"] == 18000
+    assert data["this_month_sessions"] == 3
+    assert data["all_time_seconds"] == 18000
+    assert data["all_time_sessions"] == 6
+    assert data["top_subjects"] == [
         {"subject_name": "Python", "duration_seconds": 9000}
     ]
-    assert response.json()["recent_activity"][0]["session_id"] == 7
+    assert data["recent_activity"][0]["session_id"] == 7
     assert service.summary_args == {
         "timezone": "America/New_York",
         "subject_id": 2,
