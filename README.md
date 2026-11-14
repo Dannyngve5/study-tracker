@@ -1,43 +1,48 @@
 # Study Tracker
 
-Aplicación para registrar y analizar el tiempo dedicado al estudio. El proyecto está en desarrollo; actualmente incluye una interfaz web y una API conectadas a PostgreSQL.
+An application for tracking and analyzing time spent studying. The project is currently under development and includes a web interface and an API connected to PostgreSQL.
 
-## Funcionalidades actuales
+## Screenshots
 
-- Iniciar, pausar, reanudar y finalizar sesiones de estudio, o registrar sesiones manualmente.
-- Organizar el estudio por materias y submaterias.
-- Consultar un panel con tiempo estudiado, sesiones recientes y materias con más actividad.
-- Revisar el historial con filtros por materia y período, vista individual o agrupada por día, semana o mes.
-- Editar y eliminar sesiones, materias y submaterias.
+![Study Tracker Dashboard](screenshots/dashboard.png)
 
-## Tecnologías
+## Current Features
 
-- **Frontend:** React, Vite y React Router.
-- **Backend:** Python 3.13+, FastAPI, SQLAlchemy y Alembic.
-- **Base de datos:** PostgreSQL.
+- Start, pause, resume, and finish study sessions, or log sessions manually.
+- Organize study activities by subjects and subtopics.
+- View a dashboard with total study time, recent sessions, and the most active subjects.
+- Browse study history with filters by subject and date range, with individual entries or sessions grouped by day, week, or month.
+- Edit and delete sessions, subjects, and subtopics.
 
-## Inicio local
+## Technologies
 
-Necesitas Python 3.13+, [uv](https://docs.astral.sh/uv/), Node.js con npm y Docker Compose.
+- **Frontend:** React, Vite, and React Router.
+- **Backend:** Python 3.13+, FastAPI, SQLAlchemy, and Alembic.
+- **Database:** PostgreSQL.
 
-1. Crea los archivos de entorno a partir de los ejemplos: `.env.example` en la raíz y `frontend/.env.example` en `frontend/`. Ajusta los valores si hace falta.
-2. Desde la raíz del proyecto, instala las dependencias y levanta PostgreSQL:
+## Local Setup
+
+Requirements: Python 3.13+, [uv](https://docs.astral.sh/uv/), Node.js with npm, and Docker Compose.
+
+1. Create the environment files from the provided examples: `.env.example` in the project root and `frontend/.env.example` in `frontend/`. Adjust the values if necessary.
+
+2. From the project root, install the dependencies and start PostgreSQL:
 
    ```bash
    uv sync
    docker compose up -d
    ```
 
-3. Aplica las migraciones y arranca la API:
+3. Apply the database migrations and start the API:
 
    ```bash
    uv run alembic upgrade head
    uv run uvicorn study_tracker.main:app --reload
    ```
 
-   La API y su documentación interactiva estarán en `http://localhost:8000` y `http://localhost:8000/docs`.
+   The API and its interactive documentation will be available at `http://localhost:8000` and `http://localhost:8000/docs`.
 
-4. En otra terminal, instala las dependencias del frontend y arráncalo:
+4. In a separate terminal, install the frontend dependencies and start the development server:
 
    ```bash
    cd frontend
@@ -45,11 +50,11 @@ Necesitas Python 3.13+, [uv](https://docs.astral.sh/uv/), Node.js con npm y Dock
    npm run dev
    ```
 
-   Vite mostrará la dirección local de la aplicación. La URL de la API se configura con `VITE_API_BASE_URL` en `frontend/.env`.
+   Vite will display the local application URL. The API URL is configured through `VITE_API_BASE_URL` in `frontend/.env`.
 
-## Pruebas
+## Tests
 
-Desde la raíz del proyecto:
+From the project root, run:
 
 ```bash
 uv run pytest
