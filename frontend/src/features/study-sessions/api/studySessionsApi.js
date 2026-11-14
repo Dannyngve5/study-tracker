@@ -1,4 +1,4 @@
-import { apiRequest, jsonOptions } from "../../api/client";
+import { apiRequest, jsonOptions } from "../../../shared/api/client";
 
 export function getActiveSession({ signal } = {}) {
     return apiRequest("/study-sessions/active", { signal });

@@ -2,13 +2,13 @@ import { useEffect, useState } from "react";
 import {
     getSubjects,
     getSubSubjects,
-} from "../subjects/subjectsApi";
-import { getHistory } from "./historyApi";
+} from "../../subjects/api/subjectsApi";
+import { getHistory } from "../api/historyApi";
 import {
     HISTORY_GROUP_BY,
     HISTORY_MODES,
     HISTORY_PERIODS,
-} from "./historyConstants";
+} from "../model/historyConstants";
 
 const TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const PAGE_SIZE = 50;

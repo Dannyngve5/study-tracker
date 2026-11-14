@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { getStudySummary } from "../analytics/analyticsApi";
+import { getStudySummary } from "../../analytics/api/analyticsApi";
 import {
     getSubjects,
     getSubSubjects,
-} from "../subjects/subjectsApi";
+} from "../../subjects/api/subjectsApi";
 
 const TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
 

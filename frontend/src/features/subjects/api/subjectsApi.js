@@ -1,4 +1,4 @@
-import { apiRequest } from "../../api/client";
+import { apiRequest } from "../../../shared/api/client";
 
 export function getSubjects({ signal } = {}) {
     return apiRequest("/subjects/", { signal });

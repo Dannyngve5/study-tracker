@@ -1,101 +1,32 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
-import Header from "../components/Header";
-import StudyTimer from "../components/StudyTimer";
-import { useDashboardData } from "../features/dashboard/useDashboardData";
-import { useStudyTimer } from "../features/study-sessions/useStudyTimer";
-import "./Dashboard.css";
+import Header from "../../../shared/layout/Header";
+import StudyTimer from "../../study-sessions/components/StudyTimer";
+import "../dashboard.css";
 
-function Dashboard() {
-    const [period, setPeriod] = useState("today");
-
-    const timer = useStudyTimer();
+function DashboardView({ data }) {
     const {
+        period,
+        setPeriod,
+        timer,
         subjects,
         subSubjects,
         selectedSubject,
         setSelectedSubject,
         selectedSubSubject,
         setSelectedSubSubject,
-        selectedSubjectObject,
-        selectedSubSubjectObject,
         summary,
         catalogError,
         summaryError,
         summaryLoading,
-        clearError,
-        refreshSummary,
-    } = useDashboardData();
+        periodSeconds,
+        selectedSessions,
+        averageSessionSeconds,
+        summaryUnavailable,
+        handleStop,
+        handleReset,
+        handleMainTimerAction,
+    } = data;
     const subjectLocked = timer.isActive;
-
-    async function handleStart() {
-        clearError();
-
-        const started = await timer.start(
-            selectedSubjectObject?.id ?? "",
-            selectedSubSubjectObject?.id ?? null
-        );
-
-        if (started) {
-            refreshSummary();
-        }
-    }
-
-    async function handlePause() {
-        const updated = await timer.pause();
-
-        if (updated) {
-            refreshSummary();
-        }
-    }
-
-    async function handleResume() {
-        const updated = await timer.resume();
-
-        if (updated) {
-            refreshSummary();
-        }
-    }
-
-    async function handleStop() {
-        const updated = await timer.stop();
-
-        if (updated) {
-            refreshSummary();
-        }
-    }
-
-    async function handleReset() {
-        const resetSuccessful = await timer.reset();
-
-        if (resetSuccessful) {
-            refreshSummary();
-        }
-    }
-
-    const periodSeconds = {
-        today: summary?.today_seconds ?? 0,
-        week: summary?.this_week_seconds ?? 0,
-        month: summary?.this_month_seconds ?? 0,
-        all: summary?.all_time_seconds ?? 0,
-    };
-
-    const periodSessions = {
-        today: summary?.today_sessions ?? 0,
-        week: summary?.this_week_sessions ?? 0,
-        month: summary?.this_month_sessions ?? 0,
-        all: summary?.all_time_sessions ?? 0,
-    };
-
-    const selectedSeconds = periodSeconds[period];
-    const selectedSessions = periodSessions[period];
-
-    const averageSessionSeconds = selectedSessions
-        ? Math.floor(selectedSeconds / selectedSessions)
-        : 0;
-
-    const summaryUnavailable =
-        summaryLoading || (!summary && Boolean(summaryError));
 
     function formatHours(seconds) {
         const total = Number(seconds) || 0;
@@ -115,16 +46,6 @@ function Dashboard() {
                 )}
             </>
         );
-    }
-
-    async function handleMainTimerAction() {
-        if (timer.isRunning) {
-            await handlePause();
-        } else if (timer.isPaused) {
-            await handleResume();
-        } else {
-            await handleStart();
-        }
     }
 
     return (
@@ -616,4 +537,4 @@ function Dashboard() {
     );
 }
 
-export default Dashboard;
+export default DashboardView;

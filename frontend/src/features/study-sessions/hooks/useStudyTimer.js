@@ -6,7 +6,7 @@ import {
     resumeStudySession,
     startStudySession,
     stopStudySession,
-} from "./studySessionsApi";
+} from "../api/studySessionsApi";
 
 export function useStudyTimer() {
     const [session, setSession] = useState(null);
